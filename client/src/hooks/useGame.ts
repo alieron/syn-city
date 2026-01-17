@@ -29,7 +29,7 @@ export function useGame(startWord: string, targetWord: string, gameId: string) {
 
   const calculateProximity = useCallback(async (word: string): Promise<number> => {
     try {
-      const response = await fetch('/api/dist', {
+      const response = await fetch('/api/similarity', {
         headers: {
           'X-Game-Id': gameId,
           'X-Current-Word': word,
@@ -37,21 +37,19 @@ export function useGame(startWord: string, targetWord: string, gameId: string) {
       });
 
       if (!response.ok) {
+        console.error('Similarity API error:', response.status, await response.text());
         return 50;
       }
 
       const data = await response.json();
+      console.log('Similarity data:', data);
       
-      if (!data.reachable) {
-        return 0;
-      }
-
-      // Convert distance to proximity (lower distance = higher proximity)
-      // Distance of 0 = 100%, distance of 10+ = 0%
-      const maxDistance = 10;
-      const normalizedDistance = Math.min(data.distance || maxDistance, maxDistance);
-      return Math.round(100 - (normalizedDistance / maxDistance) * 100);
-    } catch {
+      // Convert similarity (0-1 range) to percentage (0-100)
+      // Similarity uses cosine similarity where 1 = identical, 0 = unrelated
+      const similarity = data.similarity || 0;
+      return Math.round(Math.max(0, Math.min(100, similarity * 100)));
+    } catch (error) {
+      console.error('Failed to calculate proximity:', error);
       return 50;
     }
   }, [gameId]);
