@@ -1,3 +1,4 @@
+import WordGraph from './WordGraph';
 import { useEffect } from 'react';
 import { useGame } from '../hooks/useGame';
 import { useTimer } from '../hooks/useTimer';
@@ -82,6 +83,16 @@ export default function GameScreen({ startWord, targetWord, playerName, onComple
             ))}
           </div>
         )}
+      </div>
+
+      {/* Word Relationship Graph */}
+      <div className="bg-white shadow-xl p-6 w-full max-w-2xl">
+        <p className="text-sm text-gray-600 mb-2">Your Journey:</p>
+        <WordGraph 
+          path={game.path} 
+          currentWord={game.currentWord}
+          targetWord={targetWord}
+        />
       </div>
 
       {/* Path Tracker */}
