@@ -23,7 +23,7 @@ export default function GameScreen({ startWord, targetWord, playerName, onComple
 
   useEffect(() => {
     game.fetchWords(startWord);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only run on mount to initialize game
   }, []);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function GameScreen({ startWord, targetWord, playerName, onComple
         timeSeconds: timer.seconds,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only trigger on completion status change
   }, [game.isComplete]);
 
   return (

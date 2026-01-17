@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-interface WordWithMetadata {
+export interface WordWithMetadata {
   word: string;
   definition: string;
   type: 'synonym' | 'antonym' | 'related';
@@ -33,10 +33,14 @@ export function useGame(startWord: string, targetWord: string) {
   });
 
   const calculateProximity = useCallback(async (word: string, target: string): Promise<number> => {
+    const MAX_SYNONYMS_TO_CHECK = 50;
+    const DEFAULT_PROXIMITY_BASE = 50;
+    const PROXIMITY_PENALTY_PER_MOVE = 5;
+    
     try {
       // Check if the word is in the target's synonyms
       const response = await fetch(
-        `https://api.datamuse.com/words?rel_syn=${target}&max=50`
+        `https://api.datamuse.com/words?rel_syn=${target}&max=${MAX_SYNONYMS_TO_CHECK}`
       );
       const data: DatamuseWord[] = await response.json();
       const synonyms = data.map((item) => item.word.toLowerCase());
@@ -51,7 +55,7 @@ export function useGame(startWord: string, targetWord: string) {
       
       // Check reverse - if target is in word's synonyms
       const reverseResponse = await fetch(
-        `https://api.datamuse.com/words?rel_syn=${word}&max=50`
+        `https://api.datamuse.com/words?rel_syn=${word}&max=${MAX_SYNONYMS_TO_CHECK}`
       );
       const reverseData: DatamuseWord[] = await reverseResponse.json();
       const reverseSynonyms = reverseData.map((item) => item.word.toLowerCase());
@@ -61,7 +65,7 @@ export function useGame(startWord: string, targetWord: string) {
       }
       
       // Default based on path length - shorter path = better
-      return Math.max(0, 50 - state.path.length * 5);
+      return Math.max(0, DEFAULT_PROXIMITY_BASE - state.path.length * PROXIMITY_PENALTY_PER_MOVE);
     } catch {
       return 50;
     }
@@ -78,10 +82,10 @@ export function useGame(startWord: string, targetWord: string) {
         fetch(`https://api.datamuse.com/words?rel_trg=${word}&max=2&md=d`),
       ]);
       
-      const [synonymData, antonymData, relatedData] = await Promise.all([
-        synonymResponse.json() as Promise<DatamuseWord[]>,
-        antonymResponse.json() as Promise<DatamuseWord[]>,
-        relatedResponse.json() as Promise<DatamuseWord[]>,
+      const [synonymData, antonymData, relatedData]: [DatamuseWord[], DatamuseWord[], DatamuseWord[]] = await Promise.all([
+        synonymResponse.json(),
+        antonymResponse.json(),
+        relatedResponse.json(),
       ]);
       
       // Map each type with metadata

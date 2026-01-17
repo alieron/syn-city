@@ -8,13 +8,8 @@ import ReactFlow, {
   Panel,
 } from 'reactflow';
 import type { Node, Edge, NodeMouseHandler } from 'reactflow';
+import type { WordWithMetadata } from '../hooks/useGame';
 import 'reactflow/dist/style.css';
-
-interface WordWithMetadata {
-  word: string;
-  definition: string;
-  type: 'synonym' | 'antonym' | 'related';
-}
 
 interface Props {
   path: string[];
@@ -28,7 +23,17 @@ interface Props {
 }
 
 // Custom node component with tooltip
-function CustomNode({ data }: { data: { label: string; backgroundColor: string; color: string; borderColor: string; definition?: string } }) {
+function CustomNode({ data }: { 
+  data: { 
+    label: string; 
+    backgroundColor: string; 
+    color: string; 
+    borderColor: string; 
+    definition?: string;
+    pathIndex?: number;
+    isPathNode?: boolean;
+  } 
+}) {
   const [showTooltip, setShowTooltip] = useState(false);
   
   return (
@@ -108,6 +113,8 @@ export default function WordGraph({
           color,
           borderColor,
           definition: `Click to revert to this word (${isStart ? 'start' : isTarget ? 'target' : isCurrent ? 'current' : 'visited'})`,
+          pathIndex: index,
+          isPathNode: true,
         },
         position: { x: index * 180, y: 100 },
         draggable: false,
@@ -197,8 +204,8 @@ export default function WordGraph({
 
   const handleNodeClick: NodeMouseHandler = (_event, node) => {
     // Handle path node clicks (revert)
-    if (node.id.startsWith('path-')) {
-      const index = parseInt(node.id.split('-').pop() || '0');
+    if (node.data.isPathNode && typeof node.data.pathIndex === 'number') {
+      const index = node.data.pathIndex;
       const word = path[index];
       if (index < path.length - 1) {
         onRevertToWord(word, index);
