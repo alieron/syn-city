@@ -2,7 +2,7 @@ import uuid
 from flask import Blueprint, jsonify
 
 from services.game import Game
-from server.main import GAMES
+from services.game_manager import GameManager
 
 start_bp = Blueprint("start", __name__)
 
@@ -14,7 +14,7 @@ def start_game():
     game = Game()
     # game.play(None, steps=10, min_path_length=4)
 
-    GAMES[game_id] = game
+    GameManager.save_game(game_id, game)
 
     return jsonify(
         {

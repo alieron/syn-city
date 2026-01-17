@@ -1,7 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from services.game import Game
-from server.main import GAMES
+from services.game_manager import GameManager
 
 dist_bp = Blueprint("dist", __name__)
 
@@ -14,7 +13,7 @@ def distance():
     if not game_id or not current_word:
         return jsonify({"error": "X-Game-Id and X-Current-Word headers required"}), 400
 
-    game = GAMES.get(game_id)
+    game = GameManager.load_game(game_id)
     if not game:
         return jsonify({"error": "invalid game id"}), 404
 
