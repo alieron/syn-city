@@ -1,6 +1,8 @@
 from flask import Flask
 from flask_cors import CORS
 
+from services.game import Game
+
 def create_app():
     app = Flask(__name__)
     CORS(app)
@@ -14,6 +16,9 @@ def create_app():
     return app
 
 app = create_app()
+
+# In-memory game store
+GAMES: dict[str, Game] = {}
 
 if __name__ == "__main__":
     app.run(debug=True, port=3001)

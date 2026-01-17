@@ -1,6 +1,12 @@
+import uuid
+import random
+from flask import Blueprint, jsonify, request
 
+from services.game import Game
 
-@game_bp.route("/dist", methods=["GET"])
+dist_bp = Blueprint("dist", __name__)
+
+@dist_bp.route("/dist", methods=["GET"])
 def distance():
     game_id = request.headers.get("X-Game-Id")
     current_word = request.headers.get("X-Current-Word")
@@ -14,8 +20,8 @@ def distance():
     if not game:
         return jsonify({"error": "invalid game id"}), 404
 
-    target = game["target"]
-    dist = shortest_distance(current_word, target)
+    target = game.end
+    dist = game.shortest_distance(current_word, target)
 
     return jsonify({
         "currentWord": current_word,

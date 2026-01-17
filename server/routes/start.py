@@ -2,26 +2,23 @@ import uuid
 import random
 from flask import Blueprint, jsonify, request
 
-game_bp = Blueprint("game", __name__)
+from services.game import Game
 
-# In-memory game store (replace later)
-GAMES: dict[str, dict] = {}
+start_bp = Blueprint("start", __name__)
 
-@game_bp.route("/start", methods=["POST"])
+@start_bp.route("/start", methods=["POST"])
 def start_game():
-   
-
     game_id = str(uuid.uuid4())
 
-    GAMES[game_id] = {
-        "start": start,
-        "target": target
-    }
+    game = Game()
+    game.play(None, steps=10, min_path_length=4)
+
+    GAMES[game_id] = game
 
     return jsonify({
         "gameId": game_id,
-        "startWord": start,
-        "targetWord": target,
-        "optimalDistance": dist
+        "startWord": game.start,
+        "targetWord": game.end,
+        "optimalDistance": game.shortest_path(game.start, game.end)
     })
 
