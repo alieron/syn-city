@@ -3,7 +3,12 @@ import random
 from collections import deque
 from pathlib import Path
 
-INPUT_FILE = Path(__file__).parent / "filtered words.json"
+INPUT_FILE = Path(__file__).parent / "filtered_words.json"
+
+from sentence_transformers import SentenceTransformer
+import numpy as np
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 class Node:
@@ -119,6 +124,13 @@ class Game:
 
         return -1
 
+    def similarity(self, node: Node) -> float:
+        embeddings = model.encode([node.word, self.end.word])
+        sim = np.dot(embeddings[0], embeddings[1]) / (
+            np.linalg.norm(embeddings[0]) * np.linalg.norm(embeddings[1])
+        )
+        return sim
+
     def _play(self):
         #     if start_word in self.graph.nodes:
         #         start = self.graph.nodes[start_word]
@@ -161,6 +173,9 @@ class Game:
                 path_taken.append(curr)
             else:
                 print("Invalid choice, try again.")
+
+            print(f"Closest distance to target: {self.shortest_path(curr)} steps")
+            print(f"Similarity to target: {self.similarity(curr):.4f}")
 
         print(
             f"Congratulations! You reached the end word '{self.end.word}' in {num_actions} actions."
