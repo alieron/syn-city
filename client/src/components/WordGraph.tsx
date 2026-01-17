@@ -334,7 +334,7 @@ export default function WordGraph({
   }, [path, words]);
 
   return (
-    <div className="relative w-full h-full bg-white">
+    <div className="relative w-full h-full bg-yellow-50">
       {/* Legend */}
       <div className="absolute top-4 right-4 bg-white bg-opacity-90 rounded-lg shadow-lg p-4 z-10">
         <h3 className="font-bold text-sm mb-2">Legend</h3>

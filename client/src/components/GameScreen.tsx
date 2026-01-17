@@ -40,9 +40,9 @@ export default function GameScreen({ startWord, targetWord, playerName, gameId, 
   }, [game.isComplete]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-maroon-50">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-maroon-950">
       {/* Header */}
-      <div className="bg-white rounded-t-2xl shadow-xl p-6 w-full max-w-6xl border-2 border-maroon-200">
+      <div className="bg-yellow-100 rounded-t-2xl shadow-xl p-6 w-full max-w-6xl border-2 border-maroon-200">
         <div className="flex justify-between items-center">
           <div>
             <p className="text-sm text-maroon-700">Player</p>
