@@ -1,4 +1,5 @@
 import WordGraph from './WordGraph';
+import BubbleGraph from './BubbleGraph';
 import { useEffect } from 'react';
 import { useGame } from '../hooks/useGame';
 import { useTimer } from '../hooks/useTimer';
@@ -53,36 +54,16 @@ export default function GameScreen({ startWord, targetWord, playerName, onComple
         </div>
       </div>
 
-      {/* Current Word */}
-      <div className="bg-white shadow-xl p-8 w-full max-w-2xl">
-        <div className="text-center mb-8">
-          <p className="text-gray-600 mb-2">Current Word</p>
-          <h2 className="text-5xl font-bold text-gray-800">{game.currentWord}</h2>
-        </div>
-
-        {/* Synonyms */}
-        {game.isLoading ? (
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
-            <p className="text-gray-500 mt-4">Loading synonyms...</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {game.synonyms.map((synonym, index) => (
-              <button
-                key={index}
-                onClick={() => game.selectWord(synonym.word)}
-                disabled={synonym.word === 'No synonyms found' || synonym.word === 'Error loading synonyms'}
-                className="bg-gradient-to-r from-purple-400 to-pink-400 text-white p-4 rounded-lg font-semibold hover:scale-105 transition transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 text-left"
-              >
-                <div className="font-bold text-lg mb-1">{synonym.word}</div>
-                <div className="text-sm text-white/90 line-clamp-2">
-                  {synonym.definition}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
+      {/* Bubble Graph */}
+      <div className="bg-white shadow-xl w-full max-w-2xl">
+        <BubbleGraph
+          previousWord={game.path.length > 1 ? game.path[game.path.length - 2] : null}
+          currentWord={game.currentWord}
+          targetWord={targetWord}
+          synonyms={game.synonyms}
+          isLoading={game.isLoading}
+          onSelectWord={game.selectWord}
+        />
       </div>
 
       {/* Word Relationship Graph */}

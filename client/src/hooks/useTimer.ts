@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 
 export function useTimer(isActive: boolean) {
   const [seconds, setSeconds] = useState(0);
-  const intervalRef = useRef<number>();
+  const intervalRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (isActive) {
