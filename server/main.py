@@ -3,6 +3,7 @@ from flask_cors import CORS
 
 from services.game import Game
 
+
 def create_app():
     app = Flask(__name__)
     CORS(app)
@@ -18,6 +19,7 @@ def create_app():
     app.register_blueprint(next_bp, url_prefix="/api")
 
     return app
+
 
 app = create_app()
 

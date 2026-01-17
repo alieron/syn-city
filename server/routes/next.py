@@ -1,14 +1,12 @@
-import json
-import uuid
-import random
 from flask import Blueprint, jsonify, request
 
 from services.game import Game
+from server.main import GAMES
 
-dist_bp = Blueprint("dist", __name__)
+next_bp = Blueprint("next", __name__)
 
 
-@dist_bp.route("/next", methods=["GET"])
+@next_bp.route("/next", methods=["GET"])
 def curr():
     game_id = request.headers.get("X-Game-Id")
     current_word = request.headers.get("X-Current-Word")
