@@ -8,10 +8,14 @@ def create_app():
     CORS(app)
 
     from routes.health import health_bp
-    from routes.synonyms import synonyms_bp
+    from routes.start import start_bp
+    from routes.dist import dist_bp
+    from routes.next import next_bp
 
     app.register_blueprint(health_bp)
-    app.register_blueprint(synonyms_bp, url_prefix="/api")
+    app.register_blueprint(start_bp, url_prefix="/api")
+    app.register_blueprint(dist_bp, url_prefix="/api")
+    app.register_blueprint(next_bp, url_prefix="/api")
 
     return app
 
