@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface SynonymWithDefinition {
   word: string;
@@ -22,34 +22,34 @@ export default function BubbleGraph({
   isLoading,
   onSelectWord,
 }: Props) {
-  const [animating, setAnimating] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [lastWord, setLastWord] = useState(currentWord);
+  const clickTimeoutRef = useRef<number | undefined>(undefined);
 
-  // Reset animation state when current word changes
-  if (lastWord !== currentWord) {
-    setLastWord(currentWord);
-    setAnimating(true);
-  }
-
+  // Cleanup timeouts on unmount
   useEffect(() => {
-    if (animating) {
-      const timer = setTimeout(() => setAnimating(false), 600);
-      return () => clearTimeout(timer);
-    }
-  }, [animating]);
+    return () => {
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSynonymClick = (synonym: SynonymWithDefinition, index: number) => {
     if (synonym.word === 'No synonyms found' || synonym.word === 'Error loading synonyms') {
       return;
     }
     setSelectedIndex(index);
-    setAnimating(true);
+    
+    // Clear any existing timeout
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+    }
     
     // Delay the word selection to allow animation to play
-    setTimeout(() => {
+    clickTimeoutRef.current = window.setTimeout(() => {
       onSelectWord(synonym.word);
       setSelectedIndex(null);
+      clickTimeoutRef.current = undefined;
     }, 400);
   };
 
@@ -140,7 +140,7 @@ export default function BubbleGraph({
 
       {/* Current Word Bubble (Large, Center) */}
       <div
-        className={`absolute transition-all duration-500 ${animating ? 'scale-95 opacity-90' : 'scale-100 opacity-100'}`}
+        className="absolute transition-all duration-500"
         style={{
           left: '50%',
           top: '50%',
