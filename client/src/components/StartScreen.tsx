@@ -41,12 +41,12 @@ export default function StartScreen({ onStart }: Props) {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4">
+    <div className="flex items-center justify-center min-h-screen p-4 bg-maroon-950">
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
-        <h1 className="text-4xl font-bold text-center mb-2 text-gray-800">
-          🎯 Synonym Sprint
+        <h1 className="text-4xl font-bold text-center mb-2 text-maroon-900">
+          SYNCITY
         </h1>
-        <p className="text-center text-gray-600 mb-8">
+        <p className="text-center text-maroon-700 mb-8">
           Race through synonyms to reach the target word!
         </p>
 
@@ -55,13 +55,13 @@ export default function StartScreen({ onStart }: Props) {
           placeholder="Enter your name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-6 focus:outline-none focus:border-purple-500"
+          className="w-full px-4 py-3 border-2 border-maroon-200 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-maroon-800 focus:border-transparent"
         />
 
         <button
           onClick={handleStart}
           disabled={isLoading}
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-lg hover:opacity-90 transition disabled:opacity-50"
+          className="w-full bg-maroon-900 hover:bg-maroon-800 text-white py-4 rounded-lg transition disabled:opacity-50"
         >
           {isLoading ? 'Starting game...' : 'Start New Game'}
         </button>
