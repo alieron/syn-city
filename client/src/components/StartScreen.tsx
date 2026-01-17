@@ -1,29 +1,43 @@
 import { useState } from 'react';
 
 interface Props {
-  onStart: (config: { startWord: string; targetWord: string; playerName: string }) => void;
+  onStart: (config: { startWord: string; targetWord: string; playerName: string; gameId: string }) => void;
 }
 
 export default function StartScreen({ onStart }: Props) {
   const [name, setName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Mock puzzles (backend will provide these later)
-  const puzzles = [
-    { id: 1, start: 'happy', end: 'sad', difficulty: 'easy' },
-    { id: 2, start: 'big', end: 'small', difficulty: 'medium' },
-    { id: 3, start: 'begin', end: 'finish', difficulty: 'hard' },
-  ];
-
-  const handleStart = (puzzle: typeof puzzles[0]) => {
+  const handleStart = async () => {
     if (!name.trim()) {
       alert('Please enter your name!');
       return;
     }
-    onStart({
-      startWord: puzzle.start,
-      targetWord: puzzle.end,
-      playerName: name,
-    });
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/start', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to start game');
+      }
+
+      const data = await response.json();
+      
+      onStart({
+        startWord: data.startWord,
+        targetWord: data.targetWord,
+        playerName: name,
+        gameId: data.gameId,
+      });
+    } catch (error) {
+      console.error('Error starting game:', error);
+      alert('Failed to start game. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -44,26 +58,13 @@ export default function StartScreen({ onStart }: Props) {
           className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-6 focus:outline-none focus:border-purple-500"
         />
 
-        <h2 className="text-xl font-semibold mb-4">Choose a puzzle:</h2>
-        
-        <div className="space-y-3">
-          {puzzles.map((puzzle) => (
-            <button
-              key={puzzle.id}
-              onClick={() => handleStart(puzzle)}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-lg hover:opacity-90 transition"
-            >
-              <div className="flex justify-between items-center px-4">
-                <span className="font-semibold">
-                  {puzzle.start} → {puzzle.end}
-                </span>
-                <span className="text-sm bg-white/20 px-3 py-1 rounded-full">
-                  {puzzle.difficulty}
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
+        <button
+          onClick={handleStart}
+          disabled={isLoading}
+          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-lg hover:opacity-90 transition disabled:opacity-50"
+        >
+          {isLoading ? 'Starting game...' : 'Start New Game'}
+        </button>
       </div>
     </div>
   );

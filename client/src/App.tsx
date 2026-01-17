@@ -10,6 +10,7 @@ interface GameConfig {
   startWord: string;
   targetWord: string;
   playerName: string;
+  gameId: string;
 }
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
           startWord={gameConfig.startWord}
           targetWord={gameConfig.targetWord}
           playerName={gameConfig.playerName}
+          gameId={gameConfig.gameId}
           onComplete={endGame}
         />
       )}

@@ -14,11 +14,12 @@ interface Props {
   startWord: string;
   targetWord: string;
   playerName: string;
+  gameId: string;
   onComplete: (result: GameResult) => void;
 }
 
-export default function GameScreen({ startWord, targetWord, playerName, onComplete }: Props) {
-  const game = useGame(startWord, targetWord);
+export default function GameScreen({ startWord, targetWord, playerName, gameId, onComplete }: Props) {
+  const game = useGame(startWord, targetWord, gameId);
   const timer = useTimer(!game.isComplete);
 
   useEffect(() => {

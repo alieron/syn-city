@@ -1,8 +1,9 @@
 import json
 import random
 from collections import deque
+from pathlib import Path
 
-INPUT_FILE = "filtered words.json"
+INPUT_FILE = Path(__file__).parent / "filtered words.json"
 
 
 class Node:
@@ -24,7 +25,8 @@ class Node:
 class Graph:
     def __init__(self):
         self.nodes = {}
-        compressed_graph = json.load(open(INPUT_FILE, "r", encoding="utf-8"))
+        with open(INPUT_FILE, "r", encoding="utf-8") as f:
+            compressed_graph = json.load(f)
         for word, relations in compressed_graph.items():
             for relation, targets in relations.items():
                 for target in targets:

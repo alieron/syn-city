@@ -16,12 +16,7 @@ interface GameState {
   proximity: number; // 0-100, higher = closer to target
 }
 
-interface DatamuseWord {
-  word: string;
-  defs?: string[];
-}
-
-export function useGame(startWord: string, targetWord: string) {
+export function useGame(startWord: string, targetWord: string, gameId: string) {
   const [state, setState] = useState<GameState>({
     currentWord: startWord,
     targetWord,
@@ -32,91 +27,75 @@ export function useGame(startWord: string, targetWord: string) {
     proximity: 0,
   });
 
-  const calculateProximity = useCallback(async (word: string, target: string): Promise<number> => {
-    const MAX_SYNONYMS_TO_CHECK = 50;
-    const DEFAULT_PROXIMITY_BASE = 50;
-    const PROXIMITY_PENALTY_PER_MOVE = 5;
-    
+  const calculateProximity = useCallback(async (word: string): Promise<number> => {
     try {
-      // Check if the word is in the target's synonyms
-      const response = await fetch(
-        `https://api.datamuse.com/words?rel_syn=${target}&max=${MAX_SYNONYMS_TO_CHECK}`
-      );
-      const data: DatamuseWord[] = await response.json();
-      const synonyms = data.map((item) => item.word.toLowerCase());
-      
-      if (word.toLowerCase() === target.toLowerCase()) {
-        return 100;
+      const response = await fetch('/api/dist', {
+        headers: {
+          'X-Game-Id': gameId,
+          'X-Current-Word': word,
+        },
+      });
+
+      if (!response.ok) {
+        return 50;
       }
+
+      const data = await response.json();
       
-      if (synonyms.includes(word.toLowerCase())) {
-        return 80;
+      if (!data.reachable) {
+        return 0;
       }
-      
-      // Check reverse - if target is in word's synonyms
-      const reverseResponse = await fetch(
-        `https://api.datamuse.com/words?rel_syn=${word}&max=${MAX_SYNONYMS_TO_CHECK}`
-      );
-      const reverseData: DatamuseWord[] = await reverseResponse.json();
-      const reverseSynonyms = reverseData.map((item) => item.word.toLowerCase());
-      
-      if (reverseSynonyms.includes(target.toLowerCase())) {
-        return 70;
-      }
-      
-      // Default based on path length - shorter path = better
-      return Math.max(0, DEFAULT_PROXIMITY_BASE - state.path.length * PROXIMITY_PENALTY_PER_MOVE);
+
+      // Convert distance to proximity (lower distance = higher proximity)
+      // Distance of 0 = 100%, distance of 10+ = 0%
+      const maxDistance = 10;
+      const normalizedDistance = Math.min(data.distance || maxDistance, maxDistance);
+      return Math.round(100 - (normalizedDistance / maxDistance) * 100);
     } catch {
       return 50;
     }
-  }, [state.path.length]);
+  }, [gameId]);
 
   const fetchWords = useCallback(async (word: string) => {
     setState(prev => ({ ...prev, isLoading: true }));
     
     try {
-      // Fetch synonyms, antonyms, and related words in parallel
-      const [synonymResponse, antonymResponse, relatedResponse] = await Promise.all([
-        fetch(`https://api.datamuse.com/words?rel_syn=${word}&max=4&md=d`),
-        fetch(`https://api.datamuse.com/words?rel_ant=${word}&max=2&md=d`),
-        fetch(`https://api.datamuse.com/words?rel_trg=${word}&max=2&md=d`),
-      ]);
+      const response = await fetch('/api/next', {
+        headers: {
+          'X-Game-Id': gameId,
+          'X-Current-Word': word,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch words');
+      }
+
+      const data = await response.json();
       
-      const [synonymData, antonymData, relatedData]: [DatamuseWord[], DatamuseWord[], DatamuseWord[]] = await Promise.all([
-        synonymResponse.json(),
-        antonymResponse.json(),
-        relatedResponse.json(),
-      ]);
-      
-      // Map each type with metadata
-      const synonyms: WordWithMetadata[] = synonymData.map((item) => ({
-        word: item.word,
-        definition: item.defs && item.defs.length > 0 
-          ? item.defs[0].replace(/^\w+\t/, '')
-          : 'No definition available',
+      // Map backend response to WordWithMetadata format
+      const synonyms: WordWithMetadata[] = (data.synonyms || []).map((word: string) => ({
+        word,
+        definition: 'Synonym',
         type: 'synonym' as const,
       }));
       
-      const antonyms: WordWithMetadata[] = antonymData.map((item) => ({
-        word: item.word,
-        definition: item.defs && item.defs.length > 0 
-          ? item.defs[0].replace(/^\w+\t/, '')
-          : 'No definition available',
+      const antonyms: WordWithMetadata[] = (data.antonyms || []).map((word: string) => ({
+        word,
+        definition: 'Antonym',
         type: 'antonym' as const,
       }));
       
-      const related: WordWithMetadata[] = relatedData.map((item) => ({
-        word: item.word,
-        definition: item.defs && item.defs.length > 0 
-          ? item.defs[0].replace(/^\w+\t/, '')
-          : 'No definition available',
+      const related: WordWithMetadata[] = (data.related || []).map((word: string) => ({
+        word,
+        definition: 'Related word',
         type: 'related' as const,
       }));
       
       const allWords = [...synonyms, ...antonyms, ...related];
       
       // Calculate proximity to target
-      const proximity = await calculateProximity(word, state.targetWord);
+      const proximity = await calculateProximity(word);
       
       setState(prev => ({
         ...prev,
@@ -134,7 +113,7 @@ export function useGame(startWord: string, targetWord: string) {
         isLoading: false 
       }));
     }
-  }, [state.targetWord, calculateProximity]);
+  }, [gameId, calculateProximity]);
 
   const selectWord = useCallback((word: string) => {
     if (word === 'No words found' || word === 'Error loading words') {

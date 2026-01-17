@@ -17,7 +17,7 @@ def distance():
     if not game:
         return jsonify({"error": "invalid game id"}), 404
 
-    target = game.end
+    target = game.end.word
     dist = game.shortest_path(game.graph.nodes[current_word])
 
     return jsonify(
