@@ -1,5 +1,6 @@
 import json
 import random
+from collections import deque
 
 INPUT_FILE = "filtered words.json"
 
@@ -50,10 +51,29 @@ class Graph:
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, walk_steps=10, min_path_length=4, max_attempts=100):
         self.graph = Graph()
-        self.visited: set[str] = set()
-        self.shortest_path_cache: dict[tuple[str, str], list[str]] = {}
+
+        random_word = random.choice(list(self.graph.nodes.keys()))
+        self.start = self.graph.nodes[random_word]
+        self.end, self.path = self.random_walk(self.start, walk_steps)
+        curr_max_length = len(self.path)
+        attempts = 0
+        while len(self.path) < min_path_length and attempts < max_attempts:
+            random_word = random.choice(list(self.graph.nodes.keys()))
+            start = self.graph.nodes[random_word]
+            end, path = self.random_walk(start, walk_steps)
+            if len(path) > curr_max_length:
+                curr_max_length = len(path)
+                self.start = start
+                self.end = end
+                self.path = path
+            attempts += 1
+
+        self.visited: set[Node] = set()
+        self.shortest_path_cache: dict[tuple[Node, Node], int] = {}
+        self.queue = deque([(self.end, 0, [self.end])])  # curr, dist, path
+        self.shortest_path(self.start)
 
     def random_walk(self, start: Node, steps: int) -> tuple[Node, list[Node]]:
         path = [start]
@@ -79,55 +99,70 @@ class Game:
             curr = next_node
         return curr, path
 
-    def shortest_path(self, start: Node, end: Node) -> int:
-        return 0
+    def shortest_path(self, end: Node) -> int:
+        if (self.end, end) in self.shortest_path_cache:
+            return self.shortest_path_cache[(self.end, end)]
 
-    def play(self, start_word: str, steps: int = 10, min_path_length: int = 4):
-        if start_word in self.graph.nodes:
-            start = self.graph.nodes[start_word]
-        else:
-            random_word = random.choice(list(self.graph.nodes.keys()))
-            start = self.graph.nodes[random_word]
+        while self.queue:
+            curr, dist, path = self.queue.popleft()
+            self.shortest_path_cache[(self.end, curr)] = dist
+            for neighbor in curr.synonyms | curr.antonyms | curr.related:
+                if neighbor not in self.visited:
+                    self.visited.add(neighbor)
+                    self.queue.append((neighbor, dist + 1, path + [neighbor]))
+            if curr == end:
+                if end == self.start:  # only for intial call
+                    self.path = path
+                return dist
 
-        end, path = self.random_walk(start, steps)
-        while len(path) < min_path_length:
-            random_word = random.choice(list(self.graph.nodes.keys()))
-            start = self.graph.nodes[random_word]
-            end, path = self.random_walk(start, steps)
+        return -1
 
-        self.start = start
-        self.end = end
-        self.path = path
+    # def play(self, start_word: str, steps: int = 10, min_path_length: int = 4):
+    #     if start_word in self.graph.nodes:
+    #         start = self.graph.nodes[start_word]
+    #     else:
+    #         random_word = random.choice(list(self.graph.nodes.keys()))
+    #         start = self.graph.nodes[random_word]
 
-        print(f"Start word: {start.word}, End word: {end.word}")
-        print("Possible Path:", " -> ".join([node.word for node in self.path]))
+    #     end, path = self.random_walk(start, steps)
+    #     while len(path) < min_path_length:
+    #         random_word = random.choice(list(self.graph.nodes.keys()))
+    #         start = self.graph.nodes[random_word]
+    #         end, path = self.random_walk(start, steps)
 
-        curr = self.start
-        num_actions = 0
-        path_taken = [curr]
-        while curr != self.end:
-            print(f"Current word: {curr.word}")
-            options = list(curr.synonyms | curr.antonyms | curr.related)
-            print("Options:", ", ".join([node.word for node in options]))
+    #     self.start = start
+    #     self.end = end
+    #     self.path = path
 
-            choice = input("Choose your next word: ").strip()
-            if choice == "/quit":
-                print("Game over. Thanks for playing!")
-                return
-            elif choice == "/back" and len(path_taken) > 1:
-                path_taken.pop()
-                curr = path_taken[-1]
-                num_actions += 1
-            elif choice in self.graph.nodes:
-                curr = self.graph.nodes[choice]
-                num_actions += 1
-                path_taken.append(curr)
-            else:
-                print("Invalid choice, try again.")
+    #     print(f"Start word: {start.word}, End word: {end.word}")
+    #     print("Possible Path:", " -> ".join([node.word for node in self.path]))
 
-        print(
-            f"Congratulations! You reached the end word '{self.end.word}' in {num_actions} actions."
-        )
+    #     curr = self.start
+    #     num_actions = 0
+    #     path_taken = [curr]
+    #     while curr != self.end:
+    #         print(f"Current word: {curr.word}")
+    #         options = list(curr.synonyms | curr.antonyms | curr.related)
+    #         print("Options:", ", ".join([node.word for node in options]))
+
+    #         choice = input("Choose your next word: ").strip()
+    #         if choice == "/quit":
+    #             print("Game over. Thanks for playing!")
+    #             return
+    #         elif choice == "/back" and len(path_taken) > 1:
+    #             path_taken.pop()
+    #             curr = path_taken[-1]
+    #             num_actions += 1
+    #         elif choice in self.graph.nodes:
+    #             curr = self.graph.nodes[choice]
+    #             num_actions += 1
+    #             path_taken.append(curr)
+    #         else:
+    #             print("Invalid choice, try again.")
+
+    #     print(
+    #         f"Congratulations! You reached the end word '{self.end.word}' in {num_actions} actions."
+    #     )
 
 
 if __name__ == "__main__":
