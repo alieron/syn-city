@@ -1,14 +1,11 @@
-import json
-import uuid
-import random
 from flask import Blueprint, jsonify, request
 
-from services.game import Game
+from services.game_manager import GameManager
 
-dist_bp = Blueprint("dist", __name__)
+next_bp = Blueprint("next", __name__)
 
 
-@dist_bp.route("/next", methods=["GET"])
+@next_bp.route("/next", methods=["GET"])
 def curr():
     game_id = request.headers.get("X-Game-Id")
     current_word = request.headers.get("X-Current-Word")
@@ -16,7 +13,7 @@ def curr():
     if not game_id or not current_word:
         return jsonify({"error": "X-Game-Id and X-Current-Word headers required"}), 400
 
-    game = GAMES.get(game_id)
+    game = GameManager.load_game(game_id)
     if not game:
         return jsonify({"error": "invalid game id"}), 404
 
