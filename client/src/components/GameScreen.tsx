@@ -3,11 +3,18 @@ import { useEffect } from 'react';
 import { useGame } from '../hooks/useGame';
 import { useTimer } from '../hooks/useTimer';
 
+interface GameResult {
+  playerName: string;
+  path: string[];
+  moves: number;
+  timeSeconds: number;
+}
+
 interface Props {
   startWord: string;
   targetWord: string;
   playerName: string;
-  onComplete: (result: any) => void;
+  onComplete: (result: GameResult) => void;
 }
 
 export default function GameScreen({ startWord, targetWord, playerName, onComplete }: Props) {
@@ -16,6 +23,7 @@ export default function GameScreen({ startWord, targetWord, playerName, onComple
 
   useEffect(() => {
     game.fetchWords(startWord);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -27,6 +35,7 @@ export default function GameScreen({ startWord, targetWord, playerName, onComple
         timeSeconds: timer.seconds,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game.isComplete]);
 
   return (

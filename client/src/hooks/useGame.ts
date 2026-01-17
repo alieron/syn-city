@@ -16,6 +16,11 @@ interface GameState {
   proximity: number; // 0-100, higher = closer to target
 }
 
+interface DatamuseWord {
+  word: string;
+  defs?: string[];
+}
+
 export function useGame(startWord: string, targetWord: string) {
   const [state, setState] = useState<GameState>({
     currentWord: startWord,
@@ -33,8 +38,8 @@ export function useGame(startWord: string, targetWord: string) {
       const response = await fetch(
         `https://api.datamuse.com/words?rel_syn=${target}&max=50`
       );
-      const data = await response.json();
-      const synonyms = data.map((item: any) => item.word.toLowerCase());
+      const data: DatamuseWord[] = await response.json();
+      const synonyms = data.map((item) => item.word.toLowerCase());
       
       if (word.toLowerCase() === target.toLowerCase()) {
         return 100;
@@ -48,8 +53,8 @@ export function useGame(startWord: string, targetWord: string) {
       const reverseResponse = await fetch(
         `https://api.datamuse.com/words?rel_syn=${word}&max=50`
       );
-      const reverseData = await reverseResponse.json();
-      const reverseSynonyms = reverseData.map((item: any) => item.word.toLowerCase());
+      const reverseData: DatamuseWord[] = await reverseResponse.json();
+      const reverseSynonyms = reverseData.map((item) => item.word.toLowerCase());
       
       if (reverseSynonyms.includes(target.toLowerCase())) {
         return 70;
@@ -74,13 +79,13 @@ export function useGame(startWord: string, targetWord: string) {
       ]);
       
       const [synonymData, antonymData, relatedData] = await Promise.all([
-        synonymResponse.json(),
-        antonymResponse.json(),
-        relatedResponse.json(),
+        synonymResponse.json() as Promise<DatamuseWord[]>,
+        antonymResponse.json() as Promise<DatamuseWord[]>,
+        relatedResponse.json() as Promise<DatamuseWord[]>,
       ]);
       
       // Map each type with metadata
-      const synonyms: WordWithMetadata[] = synonymData.map((item: any) => ({
+      const synonyms: WordWithMetadata[] = synonymData.map((item) => ({
         word: item.word,
         definition: item.defs && item.defs.length > 0 
           ? item.defs[0].replace(/^\w+\t/, '')
@@ -88,7 +93,7 @@ export function useGame(startWord: string, targetWord: string) {
         type: 'synonym' as const,
       }));
       
-      const antonyms: WordWithMetadata[] = antonymData.map((item: any) => ({
+      const antonyms: WordWithMetadata[] = antonymData.map((item) => ({
         word: item.word,
         definition: item.defs && item.defs.length > 0 
           ? item.defs[0].replace(/^\w+\t/, '')
@@ -96,7 +101,7 @@ export function useGame(startWord: string, targetWord: string) {
         type: 'antonym' as const,
       }));
       
-      const related: WordWithMetadata[] = relatedData.map((item: any) => ({
+      const related: WordWithMetadata[] = relatedData.map((item) => ({
         word: item.word,
         definition: item.defs && item.defs.length > 0 
           ? item.defs[0].replace(/^\w+\t/, '')

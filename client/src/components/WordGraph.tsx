@@ -28,7 +28,7 @@ interface Props {
 }
 
 // Custom node component with tooltip
-function CustomNode({ data }: { data: any }) {
+function CustomNode({ data }: { data: { label: string; backgroundColor: string; color: string; borderColor: string; definition?: string } }) {
   const [showTooltip, setShowTooltip] = useState(false);
   
   return (
@@ -193,7 +193,7 @@ export default function WordGraph({
       : [];
 
     setEdges([...pathEdges, ...nextEdges]);
-  }, [path, currentWord, targetWord, words, isLoading]);
+  }, [path, currentWord, targetWord, words, isLoading, setNodes, setEdges]);
 
   const handleNodeClick: NodeMouseHandler = (_event, node) => {
     // Handle path node clicks (revert)
