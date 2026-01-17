@@ -398,7 +398,7 @@ export default function WordGraph({
         source: `path-${path[i]}-${i}`,
         target: `path-${path[i + 1]}-${i + 1}`,
         animated: i === path.length - 2,
-        style: { stroke: '#791f3e', strokeWidth: 3 },
+        style: { stroke: '#791f3e', strokeWidth: 9, strokeOpacity: 1 },
         type: 'smoothstep',
       });
     }
@@ -412,7 +412,7 @@ export default function WordGraph({
           source: currentNodeId,
           target: node.id,
           animated: false,
-          style: { stroke: '#cbd5e1', strokeWidth: 2, strokeDasharray: '5,5' },
+          style: { stroke: '#cbd5e1', strokeWidth: 6, strokeDasharray: '5,5', strokeOpacity: 1},
           type: 'smoothstep',
         }))
       : [];
@@ -423,7 +423,7 @@ export default function WordGraph({
           source: currentNodeId,
           target: node.id,
           animated: false,
-          style: { stroke: '#e5e7eb', strokeWidth: 1, strokeDasharray: '5,5' },
+          style: { stroke: '#e5e7eb', strokeWidth: 3, strokeDasharray: '5,5' },
           type: 'smoothstep',
         }))
       : [];
