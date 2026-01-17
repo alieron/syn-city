@@ -12,7 +12,16 @@ def start_game():
     game_id = str(uuid.uuid4())
 
     difficulty = request.headers.get("X-Difficulty")
-    game = Game(min_path_length=int(difficulty) if difficulty is not None else 4)
+    if difficulty is None:
+        difficulty = 4  # Default difficulty
+    else:
+        difficulty = int(difficulty)
+
+    game = Game(
+        walk_steps=5 * difficulty,
+        min_path_length=difficulty,
+        max_attempts=5 * difficulty,
+    )
     # game.play(None, steps=10, min_path_length=4)
 
     GameManager.save_game(game_id, game)
