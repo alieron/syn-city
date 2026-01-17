@@ -24,7 +24,7 @@ export default function GameScreen({ startWord, targetWord, playerName, gameId, 
 
   useEffect(() => {
     game.fetchWords(startWord);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only run on mount to initialize game
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -36,35 +36,35 @@ export default function GameScreen({ startWord, targetWord, playerName, gameId, 
         timeSeconds: timer.seconds,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only trigger on completion status change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game.isComplete]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-maroon-50">
       {/* Header */}
-      <div className="bg-white rounded-t-2xl shadow-xl p-6 w-full max-w-6xl">
+      <div className="bg-white rounded-t-2xl shadow-xl p-6 w-full max-w-6xl border-2 border-maroon-200">
         <div className="flex justify-between items-center">
           <div>
-            <p className="text-sm text-gray-600">Player</p>
-            <p className="text-xl font-bold text-purple-600">{playerName}</p>
+            <p className="text-sm text-maroon-700">Player</p>
+            <p className="text-xl font-bold text-maroon-900">{playerName}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Target</p>
-            <p className="text-2xl font-bold text-pink-600">{targetWord}</p>
+            <p className="text-sm text-maroon-700">Target</p>
+            <p className="text-2xl font-bold text-maroon-900">{targetWord}</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-600">Time</p>
-            <p className="text-2xl font-bold text-purple-600">{timer.formattedTime}</p>
+            <p className="text-sm text-maroon-700">Time</p>
+            <p className="text-2xl font-bold text-maroon-900">{timer.formattedTime}</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-600">Moves</p>
-            <p className="text-2xl font-bold text-pink-600">{game.path.length - 1}</p>
+            <p className="text-sm text-maroon-700">Moves</p>
+            <p className="text-2xl font-bold text-maroon-900">{game.path.length - 1}</p>
           </div>
         </div>
       </div>
 
       {/* Main Game Area with Interactive Graph */}
-      <div className="bg-white shadow-xl w-full max-w-6xl rounded-b-2xl">
+      <div className="bg-white shadow-xl w-full max-w-6xl rounded-b-2xl border-2 border-t-0 border-maroon-200">
         <WordGraph 
           path={game.path} 
           currentWord={game.currentWord}
