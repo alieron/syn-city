@@ -25,6 +25,6 @@ def distance():
             "currentWord": current_word,
             "targetWord": target,
             "distance": dist,
-            "reachable": dist is not None,
+            "reachable": dist != -1,
         }
     )

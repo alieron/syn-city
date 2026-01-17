@@ -34,5 +34,5 @@ def similarity():
     )
 
     return jsonify(
-        {"currentWord": node.word, "endWord": game.end.word, "similarity": sim}
+        {"currentWord": node.word, "targetWord": game.end.word, "similarity": sim}
     )
