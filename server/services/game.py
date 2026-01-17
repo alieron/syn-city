@@ -117,58 +117,57 @@ class Game:
 
         return -1
 
-    # def play(self, start_word: str, steps: int = 10, min_path_length: int = 4):
-    #     if start_word in self.graph.nodes:
-    #         start = self.graph.nodes[start_word]
-    #     else:
-    #         random_word = random.choice(list(self.graph.nodes.keys()))
-    #         start = self.graph.nodes[random_word]
+    def _play(self):
+        #     if start_word in self.graph.nodes:
+        #         start = self.graph.nodes[start_word]
+        #     else:
+        #         random_word = random.choice(list(self.graph.nodes.keys()))
+        #         start = self.graph.nodes[random_word]
 
-    #     end, path = self.random_walk(start, steps)
-    #     while len(path) < min_path_length:
-    #         random_word = random.choice(list(self.graph.nodes.keys()))
-    #         start = self.graph.nodes[random_word]
-    #         end, path = self.random_walk(start, steps)
+        #     end, path = self.random_walk(start, steps)
+        #     while len(path) < min_path_length:
+        #         random_word = random.choice(list(self.graph.nodes.keys()))
+        #         start = self.graph.nodes[random_word]
+        #         end, path = self.random_walk(start, steps)
 
-    #     self.start = start
-    #     self.end = end
-    #     self.path = path
+        #     self.start = start
+        #     self.end = end
+        #     self.path = path
 
-    #     print(f"Start word: {start.word}, End word: {end.word}")
-    #     print("Possible Path:", " -> ".join([node.word for node in self.path]))
+        print(f"Start word: {self.start.word}, End word: {self.end.word}")
+        print("Possible Path:", " -> ".join([node.word for node in self.path]))
 
-    #     curr = self.start
-    #     num_actions = 0
-    #     path_taken = [curr]
-    #     while curr != self.end:
-    #         print(f"Current word: {curr.word}")
-    #         options = list(curr.synonyms | curr.antonyms | curr.related)
-    #         print("Options:", ", ".join([node.word for node in options]))
+        curr = self.start
+        num_actions = 0
+        path_taken = [curr]
+        while curr != self.end:
+            print(f"Current word: {curr.word}")
+            options = list(curr.synonyms | curr.antonyms | curr.related)
+            print("Options:", ", ".join([node.word for node in options]))
 
-    #         choice = input("Choose your next word: ").strip()
-    #         if choice == "/quit":
-    #             print("Game over. Thanks for playing!")
-    #             return
-    #         elif choice == "/back" and len(path_taken) > 1:
-    #             path_taken.pop()
-    #             curr = path_taken[-1]
-    #             num_actions += 1
-    #         elif choice in self.graph.nodes:
-    #             curr = self.graph.nodes[choice]
-    #             num_actions += 1
-    #             path_taken.append(curr)
-    #         else:
-    #             print("Invalid choice, try again.")
+            choice = input("Choose your next word: ").strip()
+            if choice == "/quit":
+                print("Game over. Thanks for playing!")
+                return
+            elif choice == "/back" and len(path_taken) > 1:
+                path_taken.pop()
+                curr = path_taken[-1]
+                num_actions += 1
+            elif choice in self.graph.nodes:
+                curr = self.graph.nodes[choice]
+                num_actions += 1
+                path_taken.append(curr)
+            else:
+                print("Invalid choice, try again.")
 
-    #     print(
-    #         f"Congratulations! You reached the end word '{self.end.word}' in {num_actions} actions."
-    #     )
+        print(
+            f"Congratulations! You reached the end word '{self.end.word}' in {num_actions} actions."
+        )
 
 
 if __name__ == "__main__":
-    start_word = (
-        input("Enter a starting word (or leave blank for random): ").strip().lower()
-    )
+    # start_word = (
+    #     input("Enter a starting word (or leave blank for random): ").strip().lower()
+    # )
     # start_word = "hack"
-    game = Game()
-    game.play(start_word, steps=10, min_path_length=4)
+    Game()._play()
