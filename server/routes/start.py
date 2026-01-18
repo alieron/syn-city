@@ -16,11 +16,16 @@ def start_game():
 
     GameManager.save_game(game_id, game)
 
+    # Return both the puzzle path (random walk) and the true shortest path (solution)
+    puzzle_path_words = [node.word for node in getattr(game, "puzzle_path", [])]
+    solution_path_words = [node.word for node in getattr(game, "solution_path", [])]
     return jsonify(
         {
             "gameId": game_id,
             "startWord": game.start.word,
             "targetWord": game.end.word,
             "optimalDistance": game.shortest_path(game.start),
+            "puzzlePath": puzzle_path_words,
+            "shortestPath": solution_path_words,
         }
     )

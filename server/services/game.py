@@ -10,6 +10,7 @@ import numpy as np
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
+
 class Node:
     def __init__(self, word: str):
         self.word = word
@@ -60,12 +61,13 @@ class Game:
     def __init__(self, walk_steps=10, min_path_length=4, max_attempts=100):
         self.graph = Graph()
 
+        # Generate puzzle path (random walk)
         random_word = random.choice(list(self.graph.nodes.keys()))
         self.start = self.graph.nodes[random_word]
-        self.end, self.path = self.random_walk(self.start, walk_steps)
-        curr_max_length = len(self.path)
+        self.end, self.puzzle_path = self.random_walk(self.start, walk_steps)
+        curr_max_length = len(self.puzzle_path)
         attempts = 0
-        while len(self.path) < min_path_length and attempts < max_attempts:
+        while len(self.puzzle_path) < min_path_length and attempts < max_attempts:
             random_word = random.choice(list(self.graph.nodes.keys()))
             start = self.graph.nodes[random_word]
             end, path = self.random_walk(start, walk_steps)
@@ -73,13 +75,19 @@ class Game:
                 curr_max_length = len(path)
                 self.start = start
                 self.end = end
-                self.path = path
+                self.puzzle_path = path
             attempts += 1
 
+        # Compute and store the true shortest path (solution)
         self.visited: set[Node] = set()
         self.shortest_path_cache: dict[tuple[Node, Node], int] = {}
         self.queue = deque([(self.end, 0, [self.end])])  # curr, dist, path
         self.shortest_path(self.start)
+        self.solution_path = list(
+            getattr(self, "path", [])
+        )  # store the shortest path found
+        print("Puzzle path:", " -> ".join([node.word for node in self.puzzle_path]))
+        print("Shortest path:", " -> ".join([node.word for node in self.solution_path]))
 
     def random_walk(self, start: Node, steps: int) -> tuple[Node, list[Node]]:
         path = [start]
@@ -105,23 +113,23 @@ class Game:
             curr = next_node
         return curr, path
 
-    def shortest_path(self, end: Node) -> int:
-        if (self.end, end) in self.shortest_path_cache:
-            return self.shortest_path_cache[(self.end, end)]
 
-        while self.queue:
-            curr, dist, path = self.queue.popleft()
-            self.shortest_path_cache[(self.end, curr)] = dist
-            for neighbor in curr.synonyms | curr.antonyms | curr.related:
-                if neighbor not in self.visited:
-                    self.visited.add(neighbor)
-                    self.queue.append((neighbor, dist + 1, path + [neighbor]))
+    def shortest_path(self, start: Node, end: Node = None) -> list:
+        # Standard BFS from start to end, returns the path as a list of nodes
+        if end is None:
+            end = self.end
+        from collections import deque
+        visited = set()
+        queue = deque([(start, [start])])
+        while queue:
+            curr, path = queue.popleft()
             if curr == end:
-                if end == self.start:  # only for intial call
-                    self.path = path
-                return dist
-
-        return -1
+                return path
+            visited.add(curr)
+            for neighbor in curr.synonyms | curr.antonyms | curr.related:
+                if neighbor not in visited:
+                    queue.append((neighbor, path + [neighbor]))
+        return []
 
     def similarity(self, node: Node) -> float:
         embeddings = model.encode([node.word, self.end.word])
@@ -148,7 +156,8 @@ class Game:
         #     self.path = path
 
         print(f"Start word: {self.start.word}, End word: {self.end.word}")
-        print("Possible Path:", " -> ".join([node.word for node in self.path]))
+        solution = self.shortest_path(self.start, self.end)
+        print("Shortest Path:", " -> ".join([node.word for node in solution]))
 
         curr = self.start
         num_actions = 0

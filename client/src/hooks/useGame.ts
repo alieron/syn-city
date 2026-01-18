@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export interface WordWithMetadata {
   word: string;
@@ -14,6 +14,7 @@ interface GameState {
   isLoading: boolean;
   isComplete: boolean;
   proximity: number; // 0-100, higher = closer to target
+  clickCount: number; // total node clicks
 }
 
 export function useGame(startWord: string, targetWord: string, gameId: string) {
@@ -25,7 +26,25 @@ export function useGame(startWord: string, targetWord: string, gameId: string) {
     isLoading: false,
     isComplete: false,
     proximity: 0,
+    clickCount: 0,
   });
+
+  // Fetch and log the shortest path for debug purposes
+  // Only runs on mount/initialization
+  useEffect(() => {
+    fetch('/api/start', { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.shortestPath) {
+          console.log('Shortest path (solution):', data.shortestPath.join(' -> '));
+        } else {
+          console.log('No shortest path returned from backend.');
+        }
+      })
+      .catch(err => {
+        console.log('Error fetching shortest path:', err);
+      });
+  }, []);
 
   const calculateProximity = useCallback(async (word: string): Promise<number> => {
     try {
@@ -43,7 +62,7 @@ export function useGame(startWord: string, targetWord: string, gameId: string) {
 
       const data = await response.json();
       console.log('Similarity data:', data);
-      
+
       // Convert similarity (0-1 range) to percentage (0-100)
       // Similarity uses cosine similarity where 1 = identical, 0 = unrelated
       const similarity = data.similarity || 0;
@@ -56,7 +75,7 @@ export function useGame(startWord: string, targetWord: string, gameId: string) {
 
   const fetchWords = useCallback(async (word: string) => {
     setState(prev => ({ ...prev, isLoading: true }));
-    
+
     try {
       const response = await fetch('/api/next', {
         headers: {
@@ -70,45 +89,45 @@ export function useGame(startWord: string, targetWord: string, gameId: string) {
       }
 
       const data = await response.json();
-      
+
       // Map backend response to WordWithMetadata format
       const synonyms: WordWithMetadata[] = (data.synonyms || []).map((word: string) => ({
         word,
         definition: 'Synonym',
         type: 'synonym' as const,
       }));
-      
+
       const antonyms: WordWithMetadata[] = (data.antonyms || []).map((word: string) => ({
         word,
         definition: 'Antonym',
         type: 'antonym' as const,
       }));
-      
+
       const related: WordWithMetadata[] = (data.related || []).map((word: string) => ({
         word,
         definition: 'Related word',
         type: 'related' as const,
       }));
-      
+
       const allWords = [...synonyms, ...antonyms, ...related];
-      
+
       // Calculate proximity to target
       const proximity = await calculateProximity(word);
-      
+
       setState(prev => ({
         ...prev,
-        words: allWords.length > 0 
-          ? allWords 
+        words: allWords.length > 0
+          ? allWords
           : [{ word: 'No words found', definition: '', type: 'synonym' }],
         isLoading: false,
         proximity,
       }));
     } catch (error) {
       console.error('Failed to fetch words:', error);
-      setState(prev => ({ 
-        ...prev, 
+      setState(prev => ({
+        ...prev,
         words: [{ word: 'Error loading words', definition: '', type: 'synonym' }],
-        isLoading: false 
+        isLoading: false
       }));
     }
   }, [gameId, calculateProximity]);
@@ -121,15 +140,15 @@ export function useGame(startWord: string, targetWord: string, gameId: string) {
     setState(prev => {
       const newPath = [...prev.path, word];
       const isComplete = word.toLowerCase() === prev.targetWord.toLowerCase();
-      
       return {
         ...prev,
         currentWord: word,
         path: newPath,
         isComplete,
+        clickCount: prev.clickCount + 1,
       };
     });
-    
+
     if (word.toLowerCase() !== state.targetWord.toLowerCase()) {
       fetchWords(word);
     }
@@ -138,15 +157,14 @@ export function useGame(startWord: string, targetWord: string, gameId: string) {
   const revertToWord = useCallback((word: string, index: number) => {
     setState(prev => {
       const newPath = prev.path.slice(0, index + 1);
-      
       return {
         ...prev,
         currentWord: word,
         path: newPath,
         isComplete: false,
+        clickCount: prev.clickCount + 1,
       };
     });
-    
     fetchWords(word);
   }, [fetchWords]);
 

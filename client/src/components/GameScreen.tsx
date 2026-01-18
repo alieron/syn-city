@@ -32,7 +32,7 @@ export default function GameScreen({ startWord, targetWord, playerName, gameId, 
       onComplete({
         playerName,
         path: game.path,
-        moves: game.path.length - 1,
+        moves: game.clickCount,
         timeSeconds: timer.seconds,
       });
     }
@@ -58,15 +58,15 @@ export default function GameScreen({ startWord, targetWord, playerName, gameId, 
           </div>
           <div className="text-right">
             <p className="text-sm text-maroon-700">Moves</p>
-            <p className="text-2xl font-bold text-maroon-900">{game.path.length - 1}</p>
+            <p className="text-2xl font-bold text-maroon-900">{game.clickCount}</p>
           </div>
         </div>
       </div>
 
       {/* Main Game Area with Interactive Graph */}
       <div className="bg-white shadow-xl w-full max-w-6xl rounded-b-2xl border-2 border-t-0 border-maroon-200">
-        <WordGraph 
-          path={game.path} 
+        <WordGraph
+          path={game.path}
           currentWord={game.currentWord}
           targetWord={targetWord}
           words={game.words}
