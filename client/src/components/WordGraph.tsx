@@ -16,7 +16,7 @@ interface Props {
 
 interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
-  group: 'path' | 'option' | 'target';
+  group: 'path' | 'option' | 'target' | 'pastOption';
   type?: 'synonym' | 'antonym' | 'related';
   pathIndex?: number;
   definition?: string;
@@ -67,6 +67,9 @@ export default function WordGraph({
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const simulationRef = useRef<d3.Simulation<GraphNode, GraphLink> | null>(null);
+  // Track all discovered nodes and links for persistent additive graph
+  const [discoveredNodes, setDiscoveredNodes] = useState<Record<string, { type?: 'synonym' | 'antonym' | 'related', definition?: string }>>({});
+  const [discoveredLinks, setDiscoveredLinks] = useState<Array<{ source: string, target: string, value: number }>>([]);
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -74,50 +77,79 @@ export default function WordGraph({
     const width = svgRef.current.clientWidth;
     const height = svgRef.current.clientHeight;
 
-    // Build nodes and links
-    const nodes: GraphNode[] = [];
-    const links: GraphLink[] = [];
-    const nodeIds = new Set<string>();
-
-    // Add path nodes
+    // Build persistent additive graph
+    let newDiscoveredNodes = { ...discoveredNodes };
+    let newDiscoveredLinks = [...discoveredLinks];
+    // Add all path nodes, skipping error/sentinel values
     path.forEach((word, index) => {
-      if (!nodeIds.has(word)) {
-        nodes.push({
-          id: word,
-          group: word === targetWord ? 'target' : 'path',
-          pathIndex: index,
-        });
-        nodeIds.add(word);
+      if (word !== 'No words found' && word !== 'Error loading words') {
+        if (!newDiscoveredNodes[word]) {
+          newDiscoveredNodes[word] = {};
+        }
       }
     });
-
-    // Add links between path nodes
+    // Add all links between path nodes, skipping error/sentinel values
     for (let i = 0; i < path.length - 1; i++) {
-      links.push({
-        source: path[i],
-        target: path[i + 1],
-        value: 3,
-      });
+      if (
+        path[i] !== 'No words found' && path[i] !== 'Error loading words' &&
+        path[i + 1] !== 'No words found' && path[i + 1] !== 'Error loading words'
+      ) {
+        if (!newDiscoveredLinks.some(l => l.source === path[i] && l.target === path[i + 1])) {
+          newDiscoveredLinks.push({ source: path[i], target: path[i + 1], value: 3 });
+        }
+      }
+    }
+    // Add all current options as discovered nodes and links, skipping error/sentinel values
+    words.forEach((wordMeta) => {
+      if (wordMeta.word !== 'No words found' && wordMeta.word !== 'Error loading words') {
+        if (!newDiscoveredNodes[wordMeta.word]) {
+          newDiscoveredNodes[wordMeta.word] = { type: wordMeta.type, definition: wordMeta.definition };
+        }
+        // Always add the link from currentWord to this option if not present
+        if (
+          currentWord !== 'No words found' && currentWord !== 'Error loading words' &&
+          !newDiscoveredLinks.some(l => l.source === currentWord && l.target === wordMeta.word)
+        ) {
+          newDiscoveredLinks.push({ source: currentWord, target: wordMeta.word, value: 1 });
+        }
+      }
+    });
+    // Update state if changed
+    if (Object.keys(newDiscoveredNodes).length !== Object.keys(discoveredNodes).length || newDiscoveredLinks.length !== discoveredLinks.length) {
+      setDiscoveredNodes(newDiscoveredNodes);
+      setDiscoveredLinks(newDiscoveredLinks);
     }
 
-    // Add option nodes (available words to select)
-    words.forEach((wordMeta) => {
-      if (!nodeIds.has(wordMeta.word) && wordMeta.word !== 'No words found' && wordMeta.word !== 'Error loading words') {
-        nodes.push({
-          id: wordMeta.word,
-          group: 'option',
-          type: wordMeta.type,
-          definition: wordMeta.definition,
-        });
-        nodeIds.add(wordMeta.word);
-
-        // Link option nodes to current word
-        links.push({
-          source: currentWord,
-          target: wordMeta.word,
-          value: 1,
-        });
+    // Now build the actual nodes and links for rendering
+    const nodes: GraphNode[] = [];
+    const links: GraphLink[] = [];
+    // Add all discovered nodes
+    Object.entries(newDiscoveredNodes).forEach(([word, meta]) => {
+      // Determine group:
+      // - If on current path: 'path' (or 'target')
+      // - If child of currentWord: 'option'
+      // - Otherwise: 'pastOption'
+      let group: GraphNode['group'] = 'pastOption';
+      let pathIndex = undefined;
+      if (word === targetWord) {
+        group = 'target';
+      } else if (path.includes(word)) {
+        group = 'path';
+        pathIndex = path.indexOf(word);
+      } else if (words.some(w => w.word === word)) {
+        group = 'option';
       }
+      nodes.push({
+        id: word,
+        group,
+        type: meta.type,
+        pathIndex,
+        definition: meta.definition,
+      });
+    });
+    // Add all discovered links
+    newDiscoveredLinks.forEach(l => {
+      links.push({ source: l.source, target: l.target, value: l.value });
     });
 
     // Color scale
@@ -129,6 +161,7 @@ export default function WordGraph({
         if (type === 'antonym') return '#ef4444'; // Red
         if (type === 'related') return '#10b981'; // Green
       }
+      if (group === 'pastOption') return '#d1d5db'; // Gray-300 for past options
       return '#6b7280'; // Gray default
     };
 
@@ -169,21 +202,17 @@ export default function WordGraph({
         .attr('stroke-width', 2);
     }
 
-    // Create or update simulation
-    if (!simulationRef.current) {
-      simulationRef.current = d3.forceSimulation<GraphNode>()
-        .force('link', d3.forceLink<GraphNode, GraphLink>().id(d => d.id).distance(100))
-        .force('charge', d3.forceManyBody().strength(-300))
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius(40));
+    // Always create a new simulation when nodes or links change to avoid node overlap
+    if (simulationRef.current) {
+      simulationRef.current.stop();
     }
+    simulationRef.current = d3.forceSimulation<GraphNode>(nodes)
+      .force('link', d3.forceLink<GraphNode, GraphLink>(links).id(d => d.id).distance(100))
+      .force('charge', d3.forceManyBody().strength(-300))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('collision', d3.forceCollide().radius(40));
 
     const simulation = simulationRef.current;
-
-    // Update nodes and links in simulation
-    simulation.nodes(nodes);
-    (simulation.force('link') as d3.ForceLink<GraphNode, GraphLink>).links(links);
-    simulation.alpha(0.3).restart();
 
     // Update links using join pattern
     const link = linkGroup
@@ -238,8 +267,7 @@ export default function WordGraph({
     // Click handler for nodes
     node.on('click', (event, d) => {
       event.stopPropagation();
-
-      if (d.group === 'option') {
+      if (d.group === 'option' || d.group === 'target') {
         onSelectWord(d.id);
       } else if (d.group === 'path' && d.pathIndex !== undefined && d.pathIndex < path.length - 1) {
         onRevertToWord(d.id, d.pathIndex);
@@ -335,7 +363,7 @@ export default function WordGraph({
   }, [path, words]);
 
   return (
-    <div className="relative w-full h-full bg-white">
+    <div className="relative w-full h-full bg-yellow-50">
       {/* Legend */}
       <div className="absolute top-4 right-4 bg-white bg-opacity-90 rounded-lg shadow-lg p-4 z-10">
         <h3 className="font-bold text-sm mb-2">Legend</h3>
@@ -359,6 +387,10 @@ export default function WordGraph({
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-green-500"></div>
             <span>Related</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-gray-300"></div>
+            <span>Past Option (not chosen)</span>
           </div>
         </div>
       </div>
