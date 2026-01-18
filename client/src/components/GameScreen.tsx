@@ -3,113 +3,114 @@ import { useEffect } from 'react';
 import { useGame } from '../hooks/useGame';
 import { useTimer } from '../hooks/useTimer';
 
+interface GameResult {
+  playerName: string;
+  path: string[];
+  moves: number;
+  timeSeconds: number;
+  proximity?: number;
+  shortestPathString?: string;
+  optimalDistance?: number;
+  quit?: boolean;
+}
+
 interface Props {
   startWord: string;
   targetWord: string;
   playerName: string;
-  onComplete: (result: any) => void;
+  gameId: string;
+  shortestPath?: string[];
+  shortestPathString?: string;
+  optimalDistance?: number;
+  onComplete: (result: GameResult) => void;
 }
 
-export default function GameScreen({ startWord, targetWord, playerName, onComplete }: Props) {
-  const game = useGame(startWord, targetWord);
+export default function GameScreen({ startWord, targetWord, playerName, gameId, shortestPath, shortestPathString, optimalDistance, onComplete }: Props) {
+  const game = useGame(startWord, targetWord, gameId, shortestPath, shortestPathString, optimalDistance);
   const timer = useTimer(!game.isComplete);
 
   useEffect(() => {
-    game.fetchSynonyms(startWord);
-  }, []);
+    game.fetchWords(startWord);
+    if (shortestPath && shortestPathString) {
+      console.log('Shortest path length:', shortestPath.length - 1);
+      console.log('Shortest path (solution):', shortestPathString);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shortestPath, shortestPathString]);
 
   useEffect(() => {
     if (game.isComplete) {
       onComplete({
         playerName,
         path: game.path,
-        moves: game.path.length - 1,
+        moves: game.clickCount,
         timeSeconds: timer.seconds,
+        proximity: game.proximity,
+        shortestPathString: game.shortestPathString,
+        optimalDistance: game.optimalDistance,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game.isComplete]);
 
+  const handleQuit = () => {
+    onComplete({
+      playerName,
+      path: game.path,
+      moves: game.clickCount,
+      timeSeconds: timer.seconds,
+      proximity: game.proximity,
+      shortestPathString: game.shortestPathString,
+      optimalDistance: game.optimalDistance,
+      quit: true,
+    });
+  };
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-maroon-50">
       {/* Header */}
-      <div className="bg-white rounded-t-2xl shadow-xl p-6 w-full max-w-2xl">
+      <div className="bg-white rounded-t-2xl shadow-xl p-6 w-full max-w-6xl border-2 border-maroon-200">
         <div className="flex justify-between items-center">
           <div>
-            <p className="text-sm text-gray-600">Player</p>
-            <p className="text-xl font-bold text-purple-600">{playerName}</p>
+            <p className="text-sm text-maroon-700">Player</p>
+            <p className="text-xl font-bold text-maroon-900">{playerName}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Target</p>
-            <p className="text-2xl font-bold text-pink-600">{targetWord}</p>
+            <p className="text-sm text-maroon-700">Target</p>
+            <p className="text-2xl font-bold text-maroon-900">{targetWord}</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-600">Time</p>
-            <p className="text-2xl font-bold text-purple-600">{timer.formattedTime}</p>
+            <p className="text-sm text-maroon-700">Time</p>
+            <p className="text-2xl font-bold text-maroon-900">{timer.formattedTime}</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-600">Moves</p>
-            <p className="text-2xl font-bold text-pink-600">{game.path.length - 1}</p>
+            <p className="text-sm text-maroon-700">Moves</p>
+            <p className="text-2xl font-bold text-maroon-900">{game.clickCount}</p>
           </div>
+        </div>
+        {/* Quit Button */}
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={handleQuit}
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition disabled:opacity-50"
+          >
+            Quit
+          </button>
         </div>
       </div>
 
-      {/* Current Word */}
-      <div className="bg-white shadow-xl p-8 w-full max-w-2xl">
-        <div className="text-center mb-8">
-          <p className="text-gray-600 mb-2">Current Word</p>
-          <h2 className="text-5xl font-bold text-gray-800">{game.currentWord}</h2>
-        </div>
-
-        {/* Synonyms */}
-        {game.isLoading ? (
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
-            <p className="text-gray-500 mt-4">Loading synonyms...</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {game.synonyms.map((synonym, index) => (
-              <button
-                key={index}
-                onClick={() => game.selectWord(synonym.word)}
-                disabled={synonym.word === 'No synonyms found' || synonym.word === 'Error loading synonyms'}
-                className="bg-gradient-to-r from-purple-400 to-pink-400 text-white p-4 rounded-lg font-semibold hover:scale-105 transition transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 text-left"
-              >
-                <div className="font-bold text-lg mb-1">{synonym.word}</div>
-                <div className="text-sm text-white/90 line-clamp-2">
-                  {synonym.definition}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Word Relationship Graph */}
-      <div className="bg-white shadow-xl p-6 w-full max-w-2xl">
-        <p className="text-sm text-gray-600 mb-2">Your Journey:</p>
-        <WordGraph 
-          path={game.path} 
+      {/* Main Game Area with Interactive Graph */}
+      <div className="bg-white shadow-xl w-full max-w-6xl rounded-b-2xl border-2 border-t-0 border-maroon-200">
+        <WordGraph
+          path={game.path}
           currentWord={game.currentWord}
           targetWord={targetWord}
+          words={game.words}
+          proximity={game.proximity}
+          isLoading={game.isLoading}
+          onSelectWord={game.selectWord}
+          onRevertToWord={game.revertToWord}
         />
-      </div>
-
-      {/* Path Tracker */}
-      <div className="bg-white rounded-b-2xl shadow-xl p-6 w-full max-w-2xl">
-        <p className="text-sm text-gray-600 mb-2">Your path:</p>
-        <div className="flex flex-wrap gap-2">
-          {game.path.map((word, index) => (
-            <div key={index} className="flex items-center">
-              <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
-                {word}
-              </span>
-              {index < game.path.length - 1 && (
-                <span className="text-gray-400 mx-2">→</span>
-              )}
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
