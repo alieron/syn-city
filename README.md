@@ -1,73 +1,61 @@
-# React + TypeScript + Vite
+### SYNCITY
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+They say in life it's the journey, not the destination, that matters (we don't actually know who). That is precisely what Syncity is about! 
 
-Currently, two official plugins are available:
+Embark on a fast-paced word-navigation adventure inspired by WikiRacing, built around semantic relationships instead of hyperlinks. Players start from a random word and must reach a target word by travelling through a network of synonyms, antonyms and related words, choosing the path they believe would bring them closer to greatness. Players race against the clock, track their number of moves, and use a similarity meter to estimate how close they are to the target word. Players may backtrack to rethink their strategy, and successful runs are recorded on a leaderboard.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+At every juncture, every decision they make shapes the path that follows. Watch every second. Count every move. Getting lost along your path isn't failure, it's a part of discovering the path you were meant to take.
 
-## React Compiler
+Beyond gameplay, Syncity encourages vocabulary learning, lateral thinking, and intuition about how ideas relate.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Expanding the ESLint configuration
+## Inspiration
+We were inspired by WikiRacing and the idea that meaning is not linear, but connected. Language forms a web of associations, contrasts, and intuitions, and navigating it trains how we think, not just what we know. Syncity was born from the question: *What if exploring meaning itself became the game?*
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## How we built it
+We modelled language as a semantic graph, where words are nodes connected through linguistic relationships. To estimate closeness between words, we used sentence transformers to generate AI embeddings, allowing us to compute semantic similarity in real time and power the proximity meter.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Tech stack:
+- Frontend: TypeScript, React, Vite, Tailwind CSS  
+- Backend: Python, Flask  
+- Data: Wiktionary (parsed and cleaned)  
+- AI: Sentence transformer embeddings for semantic similarity  
+- Visualisation: Interactive graph-based word navigation  
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Challenges we ran into
+- Data quality & safety: Wiktionary data contained profanities and irrelevant entries, requiring careful filtering  
+- Data parsing: Wiktionary’s structure was complex and inconsistent, making extraction and normalisation non-trivial  
+- Game balance: Balancing dataset size with playability to avoid dead ends while keeping the game challenging  
+- Team coordination: Sequencing frontend work carefully to avoid merge conflicts due to overlapping files  
+- Version control: Resolving Tailwind CSS version mismatches and improving Git workflows under time pressure  
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Accomplishments that we're proud of
+- Built a fully playable and polished product, more complete than any of our previous hackathon projects  
+- Successfully integrated AI embeddings into real-time gameplay  
+- Overcame a long brainstorming block to create a concept all team members were excited about  
+- Improved significantly in team coordination, Git usage, and task division  
+- Delivered a game that is both fun and intellectually engaging
+
+---
+
+## What we learned
+- How to transform unstructured linguistic data into a usable product  
+- Practical experience applying AI embeddings in a real interactive system  
+- Better collaboration under tight deadlines, especially around version control  
+- The importance of early alignment on tools, dependencies, and workflows  
+- That strong ideas often emerge after pushing through creative blocks  
+
+---
+
+## What's next for Syncity
+- New game modes, including live multiplayer versus mode  
+- Hint systems for learning-focused play  
+- Displaying the shortest semantic path after each game to compare with the player’s route  
+- Expanded datasets and difficulty tiers  
+- Educational adaptations for vocabulary learning and language exploration
