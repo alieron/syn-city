@@ -10,9 +10,10 @@ interface Props {
     quit?: boolean;
   };
   onRestart: () => void;
+  onShowLeaderboard?: () => void;
 }
 
-export default function EndScreen({ result, onRestart }: Props) {
+export default function EndScreen({ result, onRestart, onShowLeaderboard }: Props) {
   const minutes = Math.floor(result.timeSeconds / 60);
   const seconds = result.timeSeconds % 60;
 
@@ -89,15 +90,27 @@ export default function EndScreen({ result, onRestart }: Props) {
           </div>
         </div>
 
-        <button
-          onClick={onRestart}
-          className="w-full bg-maroon-900 hover:bg-maroon-800 text-white py-3 rounded-lg font-semibold transition hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          Play Again
-        </button>
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={onRestart}
+            className="w-full bg-maroon-900 hover:bg-maroon-800 text-white py-3 rounded-lg font-semibold transition hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Play Again
+          </button>
+          <button
+            onClick={onShowLeaderboard}
+            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg font-semibold transition hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h2a2 2 0 012 2v10a2 2 0 002 2h6a2 2 0 002-2V9a2 2 0 012-2h2" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 3.13a4 4 0 01-8 0" />
+            </svg>
+            Leaderboard
+          </button>
+        </div>
       </div>
     </div>
   );
