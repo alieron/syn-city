@@ -6,9 +6,9 @@ interface Props {
     targetWord: string;
     playerName: string;
     gameId: string;
-    shortestPath: string[];
-    shortestPathString: string;
-    optimalDistance: number;
+    shortestPath?: string[];
+    shortestPathString?: string;
+    optimalDistance?: number;
   }) => void;
 }
 

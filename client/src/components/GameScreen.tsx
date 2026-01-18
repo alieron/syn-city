@@ -8,6 +8,10 @@ interface GameResult {
   path: string[];
   moves: number;
   timeSeconds: number;
+  proximity?: number;
+  shortestPathString?: string;
+  optimalDistance?: number;
+  quit?: boolean;
 }
 
 interface Props {
@@ -41,10 +45,26 @@ export default function GameScreen({ startWord, targetWord, playerName, gameId, 
         path: game.path,
         moves: game.clickCount,
         timeSeconds: timer.seconds,
+        proximity: game.proximity,
+        shortestPathString: game.shortestPathString,
+        optimalDistance: game.optimalDistance,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game.isComplete]);
+
+  const handleQuit = () => {
+    onComplete({
+      playerName,
+      path: game.path,
+      moves: game.clickCount,
+      timeSeconds: timer.seconds,
+      proximity: game.proximity,
+      shortestPathString: game.shortestPathString,
+      optimalDistance: game.optimalDistance,
+      quit: true,
+    });
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-maroon-50">
@@ -67,6 +87,15 @@ export default function GameScreen({ startWord, targetWord, playerName, gameId, 
             <p className="text-sm text-maroon-700">Moves</p>
             <p className="text-2xl font-bold text-maroon-900">{game.clickCount}</p>
           </div>
+        </div>
+        {/* Quit Button */}
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={handleQuit}
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition disabled:opacity-50"
+          >
+            Quit
+          </button>
         </div>
       </div>
 

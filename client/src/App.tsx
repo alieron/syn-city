@@ -2,15 +2,19 @@ import { useState } from 'react';
 import StartScreen from './components/StartScreen';
 import GameScreen from './components/GameScreen';
 import EndScreen from './components/EndScreen';
+import QuitScreen from './components/QuitScreen';
 import './App.css';
 
-type Screen = 'start' | 'game' | 'end';
+type Screen = 'start' | 'game' | 'end' | 'quit';
 
 interface GameConfig {
   startWord: string;
   targetWord: string;
   playerName: string;
   gameId: string;
+  shortestPath?: string[];
+  shortestPathString?: string;
+  optimalDistance?: number;
 }
 
 function App() {
@@ -25,7 +29,11 @@ function App() {
 
   const endGame = (result: any) => {
     setGameResult(result);
-    setScreen('end');
+    if (result.quit) {
+      setScreen('quit');
+    } else {
+      setScreen('end');
+    }
   };
 
   const restart = () => {
@@ -43,11 +51,17 @@ function App() {
           targetWord={gameConfig.targetWord}
           playerName={gameConfig.playerName}
           gameId={gameConfig.gameId}
+          shortestPath={gameConfig.shortestPath}
+          shortestPathString={gameConfig.shortestPathString}
+          optimalDistance={gameConfig.optimalDistance}
           onComplete={endGame}
         />
       )}
       {screen === 'end' && gameResult && (
         <EndScreen result={gameResult} onRestart={restart} />
+      )}
+      {screen === 'quit' && gameResult && (
+        <QuitScreen result={gameResult} onRestart={restart} />
       )}
     </div>
   );
