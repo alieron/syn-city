@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import Thermometer from './Thermometer';
 import * as d3 from 'd3';
 import type { WordWithMetadata } from '../hooks/useGame';
 
@@ -41,7 +42,7 @@ async function fetchDefinition(word: string): Promise<string> {
     if (!response.ok) {
       return 'No definition available';
     }
-    
+
     const data = await response.json();
     if (data && data[0] && data[0].meanings && data[0].meanings[0]) {
       const definition = data[0].meanings[0].definitions[0].definition;
@@ -54,15 +55,15 @@ async function fetchDefinition(word: string): Promise<string> {
   }
 }
 
-export default function WordGraph({ 
-  path, 
-  currentWord, 
-  targetWord, 
-  words, 
+export default function WordGraph({
+  path,
+  currentWord,
+  targetWord,
+  words,
   proximity,
   isLoading,
   onSelectWord,
-  onRevertToWord 
+  onRevertToWord
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const simulationRef = useRef<d3.Simulation<GraphNode, GraphLink> | null>(null);
@@ -141,7 +142,7 @@ export default function WordGraph({
     let g = svg.select<SVGGElement>('g.main-group');
     if (g.empty()) {
       g = svg.append('g').attr('class', 'main-group');
-      
+
       // Add zoom behavior only once
       svg.call(d3.zoom<SVGSVGElement, unknown>()
         .extent([[0, 0], [width, height]])
@@ -237,7 +238,7 @@ export default function WordGraph({
     // Click handler for nodes
     node.on('click', (event, d) => {
       event.stopPropagation();
-      
+
       if (d.group === 'option') {
         onSelectWord(d.id);
       } else if (d.group === 'path' && d.pathIndex !== undefined && d.pathIndex < path.length - 1) {
@@ -246,7 +247,7 @@ export default function WordGraph({
     });
 
     // Highlight on hover
-    node.on('mouseenter', function(event, d) {
+    node.on('mouseenter', function (event, d) {
       if (d.group === 'option' || (d.group === 'path' && d.pathIndex !== undefined && d.pathIndex < path.length - 1)) {
         const baseRadius = d.group === 'path' ? 20 : 15;
         d3.select(this).select('circle')
@@ -256,7 +257,7 @@ export default function WordGraph({
       }
     });
 
-    node.on('mouseleave', function(event, d) {
+    node.on('mouseleave', function (event, d) {
       if (d.group === 'option' || (d.group === 'path' && d.pathIndex !== undefined && d.pathIndex < path.length - 1)) {
         const baseRadius = d.group === 'path' ? 20 : 15;
         d3.select(this).select('circle')
@@ -311,24 +312,24 @@ export default function WordGraph({
     if (!svgRef.current) return;
 
     const svg = d3.select(svgRef.current);
-    
-    svg.selectAll('g.node-group').on('mouseenter', async function(event, d: any) {
+
+    svg.selectAll('g.node-group').on('mouseenter', async function (event, d: any) {
       const node = d as GraphNode;
       const definition = await fetchDefinition(node.id);
-      
+
       setTooltip({
         x: event.pageX,
         y: event.pageY - 10,
         text: `${node.id}: ${definition}`,
         visible: true,
       });
-    }).on('mousemove', function(event) {
+    }).on('mousemove', function (event) {
       setTooltip(prev => ({
         ...prev,
         x: event.pageX,
         y: event.pageY - 10,
       }));
-    }).on('mouseleave', function() {
+    }).on('mouseleave', function () {
       setTooltip(prev => ({ ...prev, visible: false }));
     });
   }, [path, words]);
@@ -362,16 +363,9 @@ export default function WordGraph({
         </div>
       </div>
 
-      {/* Proximity indicator */}
-      <div className="absolute top-4 left-4 bg-white bg-opacity-90 rounded-lg shadow-lg p-4 z-10">
-        <h3 className="font-bold text-sm mb-1">Proximity to Target</h3>
-        <div className="w-48 bg-gray-200 rounded-full h-3 overflow-hidden">
-          <div 
-            className="bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 h-full transition-all duration-300"
-            style={{ width: `${proximity}%` }}
-          ></div>
-        </div>
-        <p className="text-xs text-gray-600 mt-1">{proximity}%</p>
+      {/* Proximity Thermometer Overlay */}
+      <div className="absolute top-4 left-4 bg-white bg-opacity-90 rounded-lg shadow-lg p-4 z-10 w-80">
+        <Thermometer proximity={proximity} />
       </div>
 
       {/* Loading indicator */}

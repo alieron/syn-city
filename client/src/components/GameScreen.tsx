@@ -1,4 +1,5 @@
 import WordGraph from './WordGraph';
+import Thermometer from './Thermometer';
 import { useEffect } from 'react';
 import { useGame } from '../hooks/useGame';
 import { useTimer } from '../hooks/useTimer';
@@ -98,6 +99,7 @@ export default function GameScreen({ startWord, targetWord, playerName, gameId, 
           </button>
         </div>
       </div>
+
 
       {/* Main Game Area with Interactive Graph */}
       <div className="bg-white shadow-xl w-full max-w-6xl rounded-b-2xl border-2 border-t-0 border-maroon-200">

@@ -13,7 +13,7 @@ interface GameState {
   words: WordWithMetadata[];
   isLoading: boolean;
   isComplete: boolean;
-  proximity: number; // 0-100, higher = closer to target
+  proximity: number; // -1.0 to 1.0, cosine similarity (hot to cold thermometer)
   clickCount: number; // total node clicks
   shortestPath?: string[];
   shortestPathString?: string;
@@ -72,19 +72,18 @@ export function useGame(
 
       if (!response.ok) {
         console.error('Similarity API error:', response.status, await response.text());
-        return 50;
+        return 0;
       }
 
       const data = await response.json();
       console.log('Similarity data:', data);
 
-      // Convert similarity (0-1 range) to percentage (0-100)
-      // Similarity uses cosine similarity where 1 = identical, 0 = unrelated
-      const similarity = data.similarity || 0;
-      return Math.round(Math.max(0, Math.min(100, similarity * 100)));
+      // Use cosine similarity directly (-1.0 to 1.0)
+      const similarity = typeof data.similarity === 'number' ? data.similarity : 0;
+      return similarity;
     } catch (error) {
       console.error('Failed to calculate proximity:', error);
-      return 50;
+      return 0;
     }
   }, [gameId]);
 
