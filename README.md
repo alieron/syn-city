@@ -1,4 +1,5 @@
 ### SYNCITY
+---
 
 They say in life it's the journey, not the destination, that matters (we don't actually know who). That is precisely what Syncity is about! 
 
