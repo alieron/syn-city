@@ -15,17 +15,24 @@ interface Props {
   targetWord: string;
   playerName: string;
   gameId: string;
+  shortestPath?: string[];
+  shortestPathString?: string;
+  optimalDistance?: number;
   onComplete: (result: GameResult) => void;
 }
 
-export default function GameScreen({ startWord, targetWord, playerName, gameId, onComplete }: Props) {
-  const game = useGame(startWord, targetWord, gameId);
+export default function GameScreen({ startWord, targetWord, playerName, gameId, shortestPath, shortestPathString, optimalDistance, onComplete }: Props) {
+  const game = useGame(startWord, targetWord, gameId, shortestPath, shortestPathString, optimalDistance);
   const timer = useTimer(!game.isComplete);
 
   useEffect(() => {
     game.fetchWords(startWord);
+    if (shortestPath && shortestPathString) {
+      console.log('Shortest path length:', shortestPath.length - 1);
+      console.log('Shortest path (solution):', shortestPathString);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [shortestPath, shortestPathString]);
 
   useEffect(() => {
     if (game.isComplete) {

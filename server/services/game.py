@@ -113,12 +113,12 @@ class Game:
             curr = next_node
         return curr, path
 
-
-    def shortest_path(self, start: Node, end: Node = None) -> list:
+    def shortest_path(self, start: Node, end: "Node | None" = None) -> list:
         # Standard BFS from start to end, returns the path as a list of nodes
         if end is None:
             end = self.end
         from collections import deque
+
         visited = set()
         queue = deque([(start, [start])])
         while queue:
@@ -139,22 +139,6 @@ class Game:
         return sim
 
     def _play(self):
-        #     if start_word in self.graph.nodes:
-        #         start = self.graph.nodes[start_word]
-        #     else:
-        #         random_word = random.choice(list(self.graph.nodes.keys()))
-        #         start = self.graph.nodes[random_word]
-
-        #     end, path = self.random_walk(start, steps)
-        #     while len(path) < min_path_length:
-        #         random_word = random.choice(list(self.graph.nodes.keys()))
-        #         start = self.graph.nodes[random_word]
-        #         end, path = self.random_walk(start, steps)
-
-        #     self.start = start
-        #     self.end = end
-        #     self.path = path
-
         print(f"Start word: {self.start.word}, End word: {self.end.word}")
         solution = self.shortest_path(self.start, self.end)
         print("Shortest Path:", " -> ".join([node.word for node in solution]))

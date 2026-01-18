@@ -15,9 +15,36 @@ interface GameState {
   isComplete: boolean;
   proximity: number; // 0-100, higher = closer to target
   clickCount: number; // total node clicks
+  shortestPath?: string[];
+  shortestPathString?: string;
+  optimalDistance?: number;
 }
 
-export function useGame(startWord: string, targetWord: string, gameId: string) {
+export function useGame(
+  startWord: string,
+  targetWord: string,
+  gameId: string,
+  shortestPath?: string[],
+  shortestPathString?: string,
+  optimalDistance?: number
+) {
+  // If shortestPath is not provided but shortestPathString is, split and trim it
+  let derivedShortestPath: string[] | undefined = shortestPath;
+  if ((!shortestPath || shortestPath.length === 0) && shortestPathString) {
+    derivedShortestPath = shortestPathString.split('->').map(w => w.trim()).filter(Boolean);
+  }
+  // If optimalDistance is not provided, derive from path
+  let derivedOptimalDistance = optimalDistance;
+  if (derivedOptimalDistance === undefined && derivedShortestPath) {
+    derivedOptimalDistance = derivedShortestPath.length > 0 ? derivedShortestPath.length - 1 : -1;
+  }
+
+  // Log the shortest path, string, and optimal distance at first instance
+  if (derivedShortestPath || shortestPathString || derivedOptimalDistance !== undefined) {
+    console.log('[useGame] Shortest path:', derivedShortestPath);
+    console.log('[useGame] Shortest path string:', shortestPathString);
+    console.log('[useGame] Optimal distance:', derivedOptimalDistance);
+  }
   const [state, setState] = useState<GameState>({
     currentWord: startWord,
     targetWord,
@@ -27,24 +54,12 @@ export function useGame(startWord: string, targetWord: string, gameId: string) {
     isComplete: false,
     proximity: 0,
     clickCount: 0,
+    shortestPath: derivedShortestPath,
+    shortestPathString,
+    optimalDistance: derivedOptimalDistance,
   });
 
-  // Fetch and log the shortest path for debug purposes
-  // Only runs on mount/initialization
-  useEffect(() => {
-    fetch('/api/start', { method: 'POST' })
-      .then(res => res.json())
-      .then(data => {
-        if (data.shortestPath) {
-          console.log('Shortest path (solution):', data.shortestPath.join(' -> '));
-        } else {
-          console.log('No shortest path returned from backend.');
-        }
-      })
-      .catch(err => {
-        console.log('Error fetching shortest path:', err);
-      });
-  }, []);
+  // No duplicate /api/start call. Shortest path is passed in props/state.
 
   const calculateProximity = useCallback(async (word: string): Promise<number> => {
     try {
